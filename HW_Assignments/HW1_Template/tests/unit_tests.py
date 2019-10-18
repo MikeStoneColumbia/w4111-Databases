@@ -1,10 +1,10 @@
 # I write and test methods one at a time.
 # This file contains unit tests of individual methods.
 
-from src.CSVDataTable import CSVDataTable
+from HW_Assignments.HW1_Template.src.CSVDataTable import CSVDataTable
 import logging
 import os
-
+import json
 
 # The logging level to use should be an environment variable, not hard coded.
 logging.basicConfig(level=logging.DEBUG)
@@ -19,7 +19,6 @@ data_dir = os.path.abspath("../Data/Baseball")
 
 
 def t_load():
-
     connect_info = {
         "directory": data_dir,
         "file_name": "People.csv"
@@ -29,5 +28,30 @@ def t_load():
 
     print("Created table = " + str(csv_tbl))
 
+def t_table():
+    connect_info = {
+        "directory": data_dir,
+        "file_name": "People.csv"
+    }
 
-t_load()
+    red_table = RDB
+
+
+def test_match():
+    row = {"cool": "yes", "db": "no"}
+    t = {"cool": "yes"}
+    result = CSVDataTable.matches_template(row, t)
+    print(result)
+
+def test_match_all():
+    temp = {"nameLast": "Williams", "birthCity": "San Diego"}
+
+    connect_info = {"directory": data_dir, "file_name": "People.csv"}
+    csv_tbl = CSVDataTable("people", connect_info, None)
+    result = csv_tbl.find_by_template(temp) # look at the template and return matches
+    print(json.dumps(result, indent=2))
+
+
+# t_load()
+test_match()
+test_match_all()

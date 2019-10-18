@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 import logging
 
+
 class BaseDataTable(ABC):
     """
     The implementation classes (XXXDataTable) for CSV database, relational, etc. will extend this
@@ -22,7 +23,6 @@ class BaseDataTable(ABC):
         :param debug: If true, print debug messages.
         """
         pass
-
 
     @abstractmethod
     def find_by_primary_key(self, key_fields, field_list=None):

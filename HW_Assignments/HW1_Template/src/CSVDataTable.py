@@ -1,5 +1,4 @@
-
-from src.BaseDataTable import BaseDataTable
+from HW_Assignments.HW1_Template.src.BaseDataTable import BaseDataTable
 import copy
 import csv
 import logging
@@ -9,6 +8,7 @@ import pandas as pd
 
 pd.set_option("display.width", 256)
 pd.set_option('display.max_columns', 20)
+
 
 class CSVDataTable(BaseDataTable):
     """
@@ -55,13 +55,13 @@ class CSVDataTable(BaseDataTable):
             rows_to_print = self._rows[0:temp_r]
             keys = self._rows[0].keys()
 
-            for i in range(0,CSVDataTable._no_of_separators):
+            for i in range(0, CSVDataTable._no_of_separators):
                 tmp_row = {}
                 for k in keys:
                     tmp_row[k] = "***"
                 rows_to_print.append(tmp_row)
 
-            rows_to_print.extend(self._rows[int(-1*temp_r)-1:-1])
+            rows_to_print.extend(self._rows[int(-1 * temp_r) - 1:-1])
 
         df = pd.DataFrame(rows_to_print)
         result += "\nSome Rows: = \n" + str(df)
@@ -92,6 +92,20 @@ class CSVDataTable(BaseDataTable):
         :return: None
         """
 
+    def key_to_template(self, key):
+
+        tmp =  {}
+        count = 0
+
+
+
+        for i in self._data['key_columns']:
+
+            tmp[i] = key[count];
+
+            count += 1
+        return tmp
+
     @staticmethod
     def matches_template(row, template):
 
@@ -104,7 +118,7 @@ class CSVDataTable(BaseDataTable):
 
         return result
 
-    def find_by_primary_key(self, key_fields, field_list=None):
+    def find_by_primary_key(self, key_fields, field_list=None): #This means that field_list it initalized already to be none
         """
 
         :param key_fields: The list with the values for the key_columns, in order, to use to find a record.
@@ -112,7 +126,27 @@ class CSVDataTable(BaseDataTable):
         :return: None, or a dictionary containing the requested fields for the record identified
             by the key.
         """
-        pass
+
+        temp = self.key_to_template(key_fields)
+
+        ans = self.find_by_template(template=temp,field_list= field_list)
+
+        if ans is not None and len(ans) > 0:
+            ans = ans[0]
+
+        else:
+            ans = None
+
+        return ans
+
+    def project(row, field_list):
+        solution = {}
+        if field_list is None:
+            return row
+        for i in field_list:
+            solution[i] = row[i]
+
+        return solution
 
     def find_by_template(self, template, field_list=None, limit=None, offset=None, order_by=None):
         """
@@ -125,7 +159,14 @@ class CSVDataTable(BaseDataTable):
         :return: A list containing dictionaries. A dictionary is in the list representing each record
             that matches the template. The dictionary only contains the requested fields.
         """
-        pass
+        result = []
+        for x in self._rows:
+            if self.matches_template(x, template):
+                tempVal = CSVDataTable.project(x, field_list)
+                result.append(tempVal)
+
+        return result
+
 
     def delete_by_key(self, key_fields):
         """
@@ -135,7 +176,16 @@ class CSVDataTable(BaseDataTable):
         :param template: A template.
         :return: A count of the rows deleted.
         """
-        pass
+        count = 0
+
+        tmp = self.key_to_template(key_fields)
+        for x in self._rows:
+            if self.matches_template(x, tmp):
+                self._rows.remove(x)
+                count += 1
+
+        return count
+
 
     def delete_by_template(self, template):
         """
@@ -143,7 +193,15 @@ class CSVDataTable(BaseDataTable):
         :param template: Template to determine rows to delete.
         :return: Number of rows deleted.
         """
-        pass
+        count = 0
+
+        for i in self._rows:
+            if self.matches_template(i, template):
+                self._rows.remove(i)
+                count += 1
+
+        return count
+
 
     def update_by_key(self, key_fields, new_values):
         """
@@ -153,6 +211,9 @@ class CSVDataTable(BaseDataTable):
         :return: Number of rows updated.
         """
 
+        tmp = self.key_to_template(key_fields)
+        return self.update_by_template(tmp, new_values)
+
     def update_by_template(self, template, new_values):
         """
 
@@ -160,16 +221,48 @@ class CSVDataTable(BaseDataTable):
         :param new_values: New values to set for matching fields.
         :return: Number of rows updated.
         """
-        pass
+        count = 0
+        for i in self._rows:
 
-    def insert(self, new_record):
+            if self.matches_template(i,template):
+                temp = i
+                self.delete_by_template(i)
+
+                try:
+                    self.insert(new_values)
+                    count += 1
+
+                except ValueError:
+                    self._rows.append(temp)
+
+        return count
+
+
+
+
+    def insert(self,new_record):
         """
 
         :param new_record: A dictionary representing a row to add to the set of records.
         :return: None
         """
-        pass
+        if new_record is None:
+            raise ValueError("Something went wrong")
+
+        new_cols = set(new_record.keys())
+        tbl_cols = set(self._data["key_columns"])
+
+        if not new_cols.issubset(tbl_cols):
+            raise ValueError("Something went wrong")
+
+        key_cols = self._data.get("key_columns", None)
+
+        if key_cols is not None:
+            key_cols = set(key_cols)
+            if not key_cols.issubset(new_cols):
+                raise ValueError("Something is wrong")
+
+        self._rows.append(new_record)
 
     def get_rows(self):
         return self._rows
-
